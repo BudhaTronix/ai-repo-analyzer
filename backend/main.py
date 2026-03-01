@@ -1,12 +1,19 @@
 """FastAPI entrypoint for AI Repo Analyzer."""
+# ruff: noqa: E402
 
 from __future__ import annotations
 
 import os
+import sys
+from pathlib import Path
 
 import uvicorn
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from analysis.repo_cloner import InvalidRepositoryURLError, RepositoryCloneError
 from backend.api.schemas import AnalyzeRequest, AnalyzeResponse
