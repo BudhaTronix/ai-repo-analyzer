@@ -1,0 +1,50 @@
+"""FastAPI entrypoint for AI Repo Analyzer."""
+
+from __future__ import annotations
+
+import os
+
+import uvicorn
+from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException
+
+from analysis.repo_cloner import InvalidRepositoryURLError, RepositoryCloneError
+from backend.api.schemas import AnalyzeRequest, AnalyzeResponse
+from backend.api.service import AnalysisServiceError, analyze_repository
+
+load_dotenv()
+
+app = FastAPI(
+    title="AI Repo Analyzer",
+    description="Analyze GitHub repositories and generate architecture/security reports.",
+    version="1.0.0",
+)
+
+
+@app.get("/health")
+def health() -> dict[str, str]:
+    return {"status": "ok"}
+
+
+@app.post("/analyze", response_model=AnalyzeResponse)
+def analyze(request: AnalyzeRequest) -> AnalyzeResponse:
+    try:
+        result = analyze_repository(request.repo_url)
+        return AnalyzeResponse(**result)
+    except InvalidRepositoryURLError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except RepositoryCloneError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except AnalysisServiceError as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail="Unexpected failure during repository analysis.",
+        ) from exc
+
+
+if __name__ == "__main__":
+    host = os.getenv("API_HOST", "0.0.0.0")
+    port = int(os.getenv("API_PORT", "8000"))
+    uvicorn.run("backend.main:app", host=host, port=port, reload=False)
