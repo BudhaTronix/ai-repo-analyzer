@@ -162,6 +162,57 @@ python frontend/ui.py
 
 Frontend default URL: `http://127.0.0.1:7860`
 
+## Analyze A GitHub Repo (Step-By-Step)
+
+Use this example repository URL:
+
+`https://github.com/mrdbourke/tensorflow-deep-learning`
+
+### Option A: Use the UI (recommended)
+
+1. Start the backend:
+
+```bash
+python backend/main.py
+```
+
+2. Open:
+
+`http://127.0.0.1:8000/ui`
+
+3. Paste this URL into the input box:
+
+`https://github.com/mrdbourke/tensorflow-deep-learning`
+
+4. Click **Analyze Repository**.
+
+5. Wait for completion, then review:
+- Summary and architecture in the page
+- `Raw API Response`
+- Generated files from `report_path` and `diagram_path`
+
+### Option B: Use the API directly
+
+1. Start the backend:
+
+```bash
+python backend/main.py
+```
+
+2. Run:
+
+```bash
+curl -X POST "http://127.0.0.1:8000/analyze" \
+  -H "Content-Type: application/json" \
+  -d '{"repo_url":"https://github.com/mrdbourke/tensorflow-deep-learning"}'
+```
+
+3. Check response fields:
+- `summary`
+- `report_path`
+- `diagram_path`
+- `provider`
+
 ## Docker Usage
 
 Build image:
@@ -180,6 +231,22 @@ Container URLs:
 
 - API: `http://127.0.0.1:8000`
 - Embedded UI: `http://127.0.0.1:8000/ui`
+
+### Analyze the example repo in Docker
+
+After container is running:
+
+1. Open UI at `http://127.0.0.1:8000/ui` and analyze:
+
+`https://github.com/mrdbourke/tensorflow-deep-learning`
+
+2. Or call API:
+
+```bash
+curl -X POST "http://127.0.0.1:8000/analyze" \
+  -H "Content-Type: application/json" \
+  -d '{"repo_url":"https://github.com/mrdbourke/tensorflow-deep-learning"}'
+```
 
 ## Testing and Linting
 
