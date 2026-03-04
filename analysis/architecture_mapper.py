@@ -169,6 +169,42 @@ def _trim_graph_for_rendering(graph: nx.DiGraph, max_nodes: int = 100) -> nx.DiG
     return graph.subgraph(selected_nodes).copy()
 
 
+def _build_placeholder_png(graph: nx.DiGraph, png_path: Path) -> bool:
+    """Render a lightweight fallback PNG when Graphviz binaries are unavailable."""
+    try:
+        from PIL import Image, ImageDraw
+    except Exception:
+        return False
+
+    width, height = 1200, 800
+    image = Image.new("RGB", (width, height), color=(250, 252, 255))
+    draw = ImageDraw.Draw(image)
+
+    draw.text((24, 20), "Architecture Diagram (Fallback Renderer)", fill=(22, 30, 50))
+    draw.text((24, 52), f"Modules: {graph.number_of_nodes()}", fill=(40, 40, 40))
+    draw.text((24, 76), f"Edges: {graph.number_of_edges()}", fill=(40, 40, 40))
+
+    ranked = sorted(graph.degree, key=lambda item: item[1], reverse=True)[:18]
+    if not ranked:
+        draw.text((24, 120), "No module dependencies detected.", fill=(80, 80, 80))
+        image.save(png_path, format="PNG")
+        return png_path.exists()
+
+    draw.text((24, 120), "Top connected modules", fill=(22, 30, 50))
+    start_y = 150
+    row_height = 34
+    for idx, (module, degree) in enumerate(ranked):
+        y = start_y + idx * row_height
+        if y + row_height > height - 20:
+            break
+        text = module if len(module) <= 90 else f"{module[:87]}..."
+        draw.rectangle((24, y, width - 24, y + 26), outline=(159, 175, 199), width=1)
+        draw.text((32, y + 6), f"{text}  [degree={degree}]", fill=(36, 44, 66))
+
+    image.save(png_path, format="PNG")
+    return png_path.exists()
+
+
 def export_architecture_diagram(
     graph: nx.DiGraph,
     output_dir: Path,
@@ -206,5 +242,12 @@ def export_architecture_diagram(
             written_png = png_path
     except Exception:
         written_png = None
+
+    if written_png is None:
+        try:
+            if _build_placeholder_png(trimmed, png_path):
+                written_png = png_path
+        except Exception:
+            written_png = None
 
     return written_png, written_dot

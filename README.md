@@ -6,6 +6,7 @@ AI Repo Analyzer is a production-ready web application that clones and analyzes 
 
 - FastAPI backend with `POST /analyze`
 - Gradio frontend for interactive repository analysis
+- Embedded Gradio UI mounted by backend at `/ui` (plus standalone `frontend/ui.py`)
 - Repository cloning with GitHub URL validation
 - Static analysis for:
   - programming languages
@@ -150,9 +151,10 @@ pip install -r requirements.txt
 python backend/main.py
 ```
 
-Backend default URL: `http://127.0.0.1:8000`
+Backend default URL: `http://127.0.0.1:8000`  
+Embedded UI URL: `http://127.0.0.1:8000/ui`
 
-### 3) Run frontend (separate terminal)
+### 3) Run standalone frontend (optional, separate terminal)
 
 ```bash
 python frontend/ui.py
@@ -173,6 +175,11 @@ Run backend container:
 ```bash
 docker run --rm -p 8000:8000 --env-file .env ai-repo-analyzer
 ```
+
+Container URLs:
+
+- API: `http://127.0.0.1:8000`
+- Embedded UI: `http://127.0.0.1:8000/ui`
 
 ## Testing and Linting
 
@@ -201,5 +208,4 @@ Preview image:
 ## Notes
 
 - Requires `git` binary and network access to clone public repositories.
-- Graphviz binary is required for PNG diagram export.
-- Diagram generation failures are non-fatal and report generation still completes.
+- Graphviz binary improves diagram quality, but fallback PNG diagram generation works without it.
