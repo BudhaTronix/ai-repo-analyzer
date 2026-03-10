@@ -46,7 +46,9 @@ ai-repo-analyzer/
     test_api.py
     test_report.py
   .github/workflows/ci.yml
+  .dockerignore
   Dockerfile
+  docker-compose.yml
   requirements.txt
   .env.example
 ```
@@ -162,17 +164,36 @@ Frontend default URL: `http://127.0.0.1:7860`
 
 ## Docker Usage
 
-Build image:
+### 1) Build image
 
 ```bash
 docker build -t ai-repo-analyzer .
 ```
 
-Run backend container:
+### 2) Run backend only
 
 ```bash
 docker run --rm -p 8000:8000 --env-file .env ai-repo-analyzer
 ```
+
+### 3) Deploy backend + frontend with Docker Compose
+
+```bash
+docker compose up -d --build
+```
+
+Services:
+
+- Backend API: `http://127.0.0.1:8000`
+- Frontend UI: `http://127.0.0.1:7860`
+
+Stop deployment:
+
+```bash
+docker compose down
+```
+
+The compose setup uses a shared named volume (`reports_data`) so generated diagrams/reports are available to both backend and frontend containers.
 
 ## Testing and Linting
 
