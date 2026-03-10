@@ -4,8 +4,10 @@ import json
 import subprocess
 from pathlib import Path
 
+import networkx as nx
 import pytest
 
+from analysis import architecture_mapper
 from analysis.dependency_analyzer import analyze_dependencies
 from analysis.language_detector import detect_languages
 from analysis.repo_cloner import (
@@ -73,3 +75,18 @@ def test_dependency_analyzer(tmp_path: Path) -> None:
     assert "react" in analysis.dependencies
     assert "FastAPI" in analysis.frameworks
     assert "React" in analysis.frameworks
+
+
+def test_architecture_diagram_fallback_png(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    graph = nx.DiGraph()
+    graph.add_edge("app.main", "fastapi")
+    graph.add_edge("app.main", "app.routes")
+
+    def fail_png_render(*_args, **_kwargs):  # type: ignore[no-untyped-def]
+        raise RuntimeError("forced png rendering failure")
+
+    monkeypatch.setattr("networkx.drawing.nx_pydot.to_pydot", fail_png_render)
+
+    png_path, _dot_path = architecture_mapper.export_architecture_diagram(graph, tmp_path)
+    assert png_path is not None
+    assert png_path.exists()

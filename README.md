@@ -6,6 +6,7 @@ AI Repo Analyzer is a production-ready web application that clones and analyzes 
 
 - FastAPI backend with `POST /analyze`
 - Gradio frontend for interactive repository analysis
+- Embedded Gradio UI mounted by backend at `/ui` (plus standalone `frontend/ui.py`)
 - Repository cloning with GitHub URL validation
 - Static analysis for:
   - programming languages
@@ -152,15 +153,67 @@ pip install -r requirements.txt
 python backend/main.py
 ```
 
-Backend default URL: `http://127.0.0.1:8000`
+Backend default URL: `http://127.0.0.1:8000`  
+Embedded UI URL: `http://127.0.0.1:8000/ui`
 
-### 3) Run frontend (separate terminal)
+### 3) Run standalone frontend (optional, separate terminal)
 
 ```bash
 python frontend/ui.py
 ```
 
 Frontend default URL: `http://127.0.0.1:7860`
+
+## Analyze A GitHub Repo (Step-By-Step)
+
+Use this example repository URL:
+
+`https://github.com/mrdbourke/tensorflow-deep-learning`
+
+### Option A: Use the UI (recommended)
+
+1. Start the backend:
+
+```bash
+python backend/main.py
+```
+
+2. Open:
+
+`http://127.0.0.1:8000/ui`
+
+3. Paste this URL into the input box:
+
+`https://github.com/mrdbourke/tensorflow-deep-learning`
+
+4. Click **Analyze Repository**.
+
+5. Wait for completion, then review:
+- Summary and architecture in the page
+- `Raw API Response`
+- Generated files from `report_path` and `diagram_path`
+
+### Option B: Use the API directly
+
+1. Start the backend:
+
+```bash
+python backend/main.py
+```
+
+2. Run:
+
+```bash
+curl -X POST "http://127.0.0.1:8000/analyze" \
+  -H "Content-Type: application/json" \
+  -d '{"repo_url":"https://github.com/mrdbourke/tensorflow-deep-learning"}'
+```
+
+3. Check response fields:
+- `summary`
+- `report_path`
+- `diagram_path`
+- `provider`
 
 ## Docker Usage
 
@@ -222,5 +275,4 @@ Preview image:
 ## Notes
 
 - Requires `git` binary and network access to clone public repositories.
-- Graphviz binary is required for PNG diagram export.
-- Diagram generation failures are non-fatal and report generation still completes.
+- Graphviz binary improves diagram quality, but fallback PNG diagram generation works without it.

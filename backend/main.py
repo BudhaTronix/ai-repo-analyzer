@@ -7,6 +7,7 @@ import os
 import sys
 from pathlib import Path
 
+import gradio as gr
 import uvicorn
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
@@ -18,6 +19,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from analysis.repo_cloner import InvalidRepositoryURLError, RepositoryCloneError
 from backend.api.schemas import AnalyzeRequest, AnalyzeResponse
 from backend.api.service import AnalysisServiceError, analyze_repository
+from frontend.ui import create_ui
 
 load_dotenv()
 
@@ -26,6 +28,13 @@ app = FastAPI(
     description="Analyze GitHub repositories and generate architecture/security reports.",
     version="1.0.0",
 )
+
+try:
+    gradio_ui = create_ui()
+    app = gr.mount_gradio_app(app, gradio_ui, path="/ui")
+except Exception:
+    # API remains available even if Gradio cannot be mounted in constrained environments.
+    pass
 
 
 @app.get("/health")
