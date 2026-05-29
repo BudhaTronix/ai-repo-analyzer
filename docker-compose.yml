@@ -1,0 +1,48 @@
+services:
+  backend:
+    build:
+      context: .
+    image: ai-repo-analyzer:latest
+    command: python backend/main.py
+    env_file:
+      - .env
+    environment:
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - reports_data:/app/reports
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5)",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  frontend:
+    image: ai-repo-analyzer:latest
+    command: python frontend/ui.py
+    env_file:
+      - .env
+    environment:
+      API_BASE_URL: http://backend:8000
+      GRADIO_PORT: 7860
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "7860:7860"
+    volumes:
+      - reports_data:/app/reports:ro
+    restart: unless-stopped
+
+volumes:
+  reports_data:
